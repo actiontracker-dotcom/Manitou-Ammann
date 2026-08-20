@@ -14,7 +14,6 @@ export const DIVISIONS = [
 
 export const ENQUIRY_SOURCES = [
   { value: "Field Enquiry", label: "Field Enquiry" },
-  { value: "PE Ticket", label: "PE Ticket" },
   { value: "Population Projection", label: "Population Projection" },
   { value: "Direct Customer", label: "Direct Customer" },
   { value: "Non Buyer", label: "Non Buyer" },
@@ -23,7 +22,7 @@ export const ENQUIRY_SOURCES = [
 ];
 
 export const ENQUIRY_GENERATED_BY = [
-  { value: "Sumit Yadav", label: "Sumit Yadav" },
+  { value: "Sumeet Yadav", label: "Sumeet Yadav" },
   { value: "Gopal Dewkar", label: "Gopal Dewkar" },
   { value: "Pawan Sinha", label: "Pawan Sinha" },
 ];
@@ -38,7 +37,7 @@ export const PAYMENT_TERMS = [
 ];
 
 export const FOLLOWUP_BY = [
-  { value: "MR Sumit Yadav (8959000082)", label: "MR Sumit Yadav (8959000082)" },
+  { value: "Mr.Sumeet Yadav (8959000082)", label: "Mr.Sumeet Yadav (8959000082)" },
 ];
 
 export const REVISE_NUMBERS = [
