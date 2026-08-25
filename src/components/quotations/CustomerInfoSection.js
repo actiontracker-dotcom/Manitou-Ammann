@@ -71,6 +71,7 @@ export default function CustomerInfoSection({
             onSelect={handleSelectCustomer}
             fetchSuggestions={searchCustomers}
             error={errors["customer.customerName"]}
+            minChars={2}
           />
         </div>
 
