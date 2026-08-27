@@ -70,8 +70,8 @@ export default function CustomerInfoSection({
             onChange={(val) => onChange("customerName", val)}
             onSelect={handleSelectCustomer}
             fetchSuggestions={searchCustomers}
-            error={errors["customer.customerName"]}
             minChars={2}
+            error={errors["customer.customerName"]}
           />
         </div>
 
