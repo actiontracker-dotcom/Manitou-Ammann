@@ -17,10 +17,20 @@ import { fromDateInputToCanonical, fromCanonicalToDateInput } from "@/lib/utils/
 const CLOSING_ORDER_STATUSES = new Set(["Won", "Loss", "Dead", "Partial"]);
 
 const EMPTY_NEXT_FORM = { nextFollowupDate: "", followupRemark: "" };
+const CASE_STATUS_OPTIONS = [
+  { value: "Complete", label: "Complete" },
+  { value: "Not Complete", label: "Not Complete" },
+];
+
 const EMPTY_ORDER_FORM = {
   orderStatus: "",
   orderNumber: "",
   orderReceivedDate: "",
+  companyOrderNo: "",
+  companyOrderNoDate: "",
+  invoiceNo: "",
+  invoiceDate: "",
+  caseStatus: "",
   remarkForOrder: "",
 };
 
@@ -56,7 +66,7 @@ export default function QuotationFollowupModal({ quotationNo, orderStatus = "", 
   function updateOrder(field, value) {
     // Normalize date fields from YYYY-MM-DD (HTML input) to DD/MM/YYYY (canonical)
     let normalizedValue = value;
-    if (field === "orderReceivedDate") {
+    if (field === "orderReceivedDate" || field === "invoiceDate" || field === "companyOrderNoDate") {
       normalizedValue = fromDateInputToCanonical(value);
     }
     setOrderForm((prev) => ({ ...prev, [field]: normalizedValue }));
@@ -220,6 +230,11 @@ export default function QuotationFollowupModal({ quotationNo, orderStatus = "", 
         orderStatus: orderForm.orderStatus.trim(),
         orderNumber: orderForm.orderNumber.trim(),
         orderReceivedDate: orderForm.orderReceivedDate.trim(),
+        companyOrderNo: orderForm.companyOrderNo.trim(),
+        companyOrderNoDate: orderForm.companyOrderNoDate.trim(),
+        invoiceNo: orderForm.invoiceNo.trim(),
+        invoiceDate: orderForm.invoiceDate.trim(),
+        caseStatus: orderForm.caseStatus.trim(),
         remarkForOrder: orderForm.remarkForOrder.trim(),
       });
       saved = true;
@@ -361,6 +376,42 @@ export default function QuotationFollowupModal({ quotationNo, orderStatus = "", 
                 value={fromCanonicalToDateInput(orderForm.orderReceivedDate)}
                 onChange={(e) => updateOrder("orderReceivedDate", e.target.value)}
                 error={fieldErrors.orderReceivedDate}
+              />
+              <Input
+                label="Company Order No"
+                placeholder="e.g. CO-1001"
+                value={orderForm.companyOrderNo}
+                onChange={(e) => updateOrder("companyOrderNo", e.target.value)}
+                error={fieldErrors.companyOrderNo}
+              />
+              <Input
+                label="Company Order No Date"
+                type="date"
+                value={fromCanonicalToDateInput(orderForm.companyOrderNoDate)}
+                onChange={(e) => updateOrder("companyOrderNoDate", e.target.value)}
+                error={fieldErrors.companyOrderNoDate}
+              />
+              <Input
+                label="Invoice No"
+                placeholder="e.g. INV-5001"
+                value={orderForm.invoiceNo}
+                onChange={(e) => updateOrder("invoiceNo", e.target.value)}
+                error={fieldErrors.invoiceNo}
+              />
+              <Input
+                label="Invoice Date"
+                type="date"
+                value={fromCanonicalToDateInput(orderForm.invoiceDate)}
+                onChange={(e) => updateOrder("invoiceDate", e.target.value)}
+                error={fieldErrors.invoiceDate}
+              />
+              <Select
+                label="Case Status"
+                options={CASE_STATUS_OPTIONS}
+                placeholder="Select case status"
+                value={orderForm.caseStatus}
+                onChange={(e) => updateOrder("caseStatus", e.target.value)}
+                error={fieldErrors.caseStatus}
               />
               <Textarea
                 label="Remark"

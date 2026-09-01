@@ -2,7 +2,7 @@
 //
 // The Users sheet is managed separately (Google Apps Script) with exactly these
 // headers:
-//   Username | Password | Active
+//   Username | Password | Active | Email | Role
 //
 // Passwords are read ONLY here, server-side, for the plain-text login comparison
 // (testing only). The password is never returned to any client, never included
@@ -40,7 +40,7 @@ function parseActive(value) {
   return s === "TRUE" || s === "YES" || s === "1";
 }
 
-// Returns [{ username, password, active }]. Returns [] (never throws) when the
+// Returns [{ username, password, active, email, role }]. Returns [] (never throws) when the
 // sheet is missing, headers are absent, or the read fails, so login degrades
 // gracefully instead of crashing.
 export async function getUsers() {
@@ -59,6 +59,8 @@ export async function getUsers() {
         username,
         password: getCellValue(row, headers, "Password"),
         active: parseActive(getCellValue(row, headers, "Active")),
+        email: getCellValue(row, headers, "Email"),
+        role: getCellValue(row, headers, "Role"),
       });
     }
 

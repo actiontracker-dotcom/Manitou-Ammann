@@ -3,6 +3,7 @@ import {
   getQuotationFollowupHistory,
   updateQuotationNextFollowup,
   updateQuotationOrderStatus,
+  updateQuotationCaseStatus,
 } from "@/lib/services/googleSheetsService";
 import { getSessionUser, unauthorizedResponse } from "@/lib/auth/session";
 import { normalizeToCanonicalDate } from "@/lib/utils/dateUtils";
@@ -115,6 +116,12 @@ export async function POST(request, { params }) {
   if (body.orderReceivedDate) {
     body.orderReceivedDate = normalizeToCanonicalDate(body.orderReceivedDate);
   }
+  if (body.invoiceDate) {
+    body.invoiceDate = normalizeToCanonicalDate(body.invoiceDate);
+  }
+  if (body.companyOrderNoDate) {
+    body.companyOrderNoDate = normalizeToCanonicalDate(body.companyOrderNoDate);
+  }
 
   const submissionType = stringValue(body.submissionType);
 
@@ -193,6 +200,11 @@ export async function POST(request, { params }) {
         orderStatus: stringValue(body.orderStatus),
         orderNumber: stringValue(body.orderNumber),
         orderReceivedDate: stringValue(body.orderReceivedDate),
+        companyOrderNo: stringValue(body.companyOrderNo),
+        companyOrderNoDate: stringValue(body.companyOrderNoDate),
+        invoiceNo: stringValue(body.invoiceNo),
+        invoiceDate: stringValue(body.invoiceDate),
+        caseStatus: stringValue(body.caseStatus),
         remarkForOrder: stringValue(body.remarkForOrder),
       });
 
@@ -241,4 +253,94 @@ export async function POST(request, { params }) {
     },
     { status: 422 }
   );
+}
+
+// PUT /api/quotations/[quotationNo]/followup
+//
+// Updates the Case Status on an existing Order Status row. The row is
+// identified by Quotation No + Timestamp. No new row is appended.
+export async function PUT(request, { params }) {
+  const user = await getSessionUser();
+  if (!user) return unauthorizedResponse();
+
+  const { quotationNo } = params;
+  const normalizedQuotationNo = normalizeQuotationNo(quotationNo);
+
+  if (!normalizedQuotationNo) {
+    return NextResponse.json(
+      { success: false, message: "Quotation number is required." },
+      { status: 400 }
+    );
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Request body must be valid JSON." },
+      { status: 400 }
+    );
+  }
+
+  const caseStatus = stringValue(body.caseStatus);
+  const timestamp = stringValue(body.timestamp);
+
+  if (!caseStatus) {
+    return NextResponse.json(
+      { success: false, message: "Case Status is required." },
+      { status: 422 }
+    );
+  }
+
+  if (!timestamp) {
+    return NextResponse.json(
+      { success: false, message: "Timestamp is required to identify the record." },
+      { status: 422 }
+    );
+  }
+
+  if (caseStatus !== "Complete" && caseStatus !== "Not Complete") {
+    return NextResponse.json(
+      { success: false, message: "Case Status must be either 'Complete' or 'Not Complete'." },
+      { status: 422 }
+    );
+  }
+
+  try {
+    const result = await updateQuotationCaseStatus(normalizedQuotationNo, timestamp, caseStatus);
+
+    if (!result.success) {
+      const statusMap = {
+        "record-not-found": 404,
+        "column-missing": 500,
+        "no-sheet-row": 500,
+      };
+      const status = statusMap[result.reason] || 400;
+      const messageMap = {
+        "record-not-found": "Order Status record not found for the given timestamp.",
+        "column-missing": "Case Status column is missing from the Google Sheet.",
+        "no-sheet-row": "Unable to locate the row in Google Sheets.",
+      };
+      return NextResponse.json(
+        { success: false, message: messageMap[result.reason] || "Unable to update Case Status." },
+        { status }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Case Status updated successfully.",
+        data: result.data,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("[quotations/[quotationNo]/followup/PUT] Case Status update failed:", error);
+    return NextResponse.json(
+      { success: false, message: "Unable to update Case Status. Please try again." },
+      { status: 500 }
+    );
+  }
 }

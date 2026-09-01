@@ -17,6 +17,7 @@ const DATE_WISE_OPTIONS = [
 export default function QuotationFilterBar({
   orderStatusOptions = [],
   divisionOptions = [],
+  caseStatusOptions = [],
   filters,
   onFilterChange,
   onClearFilters,
@@ -53,12 +54,18 @@ export default function QuotationFilterBar({
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
         <Select
           label="Order Status"
           options={orderStatusOptions}
           value={filters.orderStatus}
           onChange={(e) => onFilterChange({ orderStatus: e.target.value })}
+        />
+        <Select
+          label="Case Status"
+          options={caseStatusOptions}
+          value={filters.caseStatus}
+          onChange={(e) => onFilterChange({ caseStatus: e.target.value })}
         />
         <Select
           label="Division"

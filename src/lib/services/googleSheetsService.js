@@ -1409,6 +1409,24 @@ export async function loadQuotations() {
 
 export async function getQuotations() {
   const { quotations } = await loadQuotations();
+
+  // Enrich each quotation with its latest Case Status from the Followup Form.
+  // This reads the Followup Form once (not per-quotation) to avoid N+1.
+  try {
+    const caseStatuses = await getLatestCaseStatuses();
+    for (const q of quotations) {
+      const entry = caseStatuses.get(q.quotationNo);
+      q.caseStatus = entry?.caseStatus || "";
+      q.caseStatusTimestamp = entry?.timestamp || "";
+    }
+  } catch {
+    // If Followup Form read fails, quotations still work without caseStatus.
+    for (const q of quotations) {
+      q.caseStatus = "";
+      q.caseStatusTimestamp = "";
+    }
+  }
+
   return quotations;
 }
 
@@ -1513,6 +1531,11 @@ const FOLLOWUP_FORM_HEADERS = [
   "Remark for Order",
   "Order Number",
   "Order Date",
+  "Invoice No",
+  "Invoice Date",
+  "Company Order No",
+  "Company Order No Date",
+  "Case Status",
   "Order Verification Status",
   "Attached Payment Receipt",
   "Due Days",
@@ -1572,6 +1595,11 @@ export async function buildFollowupFormRow(data) {
     "Remark for Order": data.remarkForOrder,
     "Order Number": data.orderNumber,
     "Order Date": toSheetDate(data.orderDate),
+    "Invoice No": data.invoiceNo,
+    "Invoice Date": toSheetDate(data.invoiceDate),
+    "Company Order No": data.companyOrderNo,
+    "Company Order No Date": toSheetDate(data.companyOrderNoDate),
+    "Case Status": data.caseStatus,
     "Order Verification Status": data.orderVerificationStatus,
     "Attached Payment Receipt": data.attachedPaymentReceipt,
     "Due Days": data.dueDays,
@@ -1969,6 +1997,11 @@ export async function updateQuotationOrderStatus(quotationNo, data) {
       orderStatus: data.orderStatus || "",
       orderNumber: data.orderNumber || "",
       orderReceivedDate: data.orderReceivedDate || "",
+      companyOrderNo: data.companyOrderNo || "",
+      companyOrderNoDate: data.companyOrderNoDate || "",
+      invoiceNo: data.invoiceNo || "",
+      invoiceDate: data.invoiceDate || "",
+      caseStatus: data.caseStatus || "",
       remarkForOrder: data.remarkForOrder || "",
     });
     return { success: true, data: dataResult, history };
@@ -2067,4 +2100,68 @@ export async function repairStaleTerminalWorkflowFields() {
   }
 
   return { safeToRepair, ambiguous, informational };
+}
+
+// ─── CASE STATUS UPDATE ──────────────────────────────────────────────────────
+// Updates only the "Case Status" cell on an existing Order Status row in
+// "Followup Form for Quotation". The row is identified by Quotation No +
+// Timestamp. No new row is appended. Only "Complete" and "Not Complete" are
+// accepted as valid values.
+export async function updateQuotationCaseStatus(quotationNo, timestamp, caseStatus) {
+  const validStatuses = ["Complete", "Not Complete"];
+  if (!validStatuses.includes(caseStatus)) {
+    return { success: false, reason: "invalid-case-status" };
+  }
+
+  const records = await getQuotationFollowupHistory(quotationNo);
+
+  // Find the matching Order Status record by timestamp.
+  const target = records.find((record) => {
+    if (String(record["Submission Type"] || "").trim() !== "Order Status") return false;
+    const recordTimestamp = (record.Timestamp || "").trim();
+    return recordTimestamp === timestamp;
+  });
+
+  if (!target) {
+    return { success: false, reason: "record-not-found" };
+  }
+
+  if (!target.__sheetRow) {
+    return { success: false, reason: "no-sheet-row" };
+  }
+
+  const headers = await readFollowupFormHeaders();
+  const caseStatusIdx = headers["Case Status"];
+  if (caseStatusIdx === undefined) {
+    return { success: false, reason: "column-missing" };
+  }
+
+  const colLetter = getColumnLetter(caseStatusIdx);
+  const range = `${colLetter}${target.__sheetRow}:${colLetter}${target.__sheetRow}`;
+  await updateSheetRow(FOLLOWUP_FORM_SHEET_TAB, range, [[caseStatus]]);
+
+  return { success: true, data: { quotationNo, timestamp, caseStatus } };
+}
+
+// ─── GET LATEST CASE STATUS FOR QUOTATIONS ───────────────────────────────────
+// Reads the Followup Form once and builds a map of quotationNo → latest case
+// status + timestamp from the most recent Order Status record. Used to enrich
+// the quotation list without N+1 queries.
+export async function getLatestCaseStatuses() {
+  const records = await readFollowupFormRecords();
+  const latestByQuotation = new Map();
+
+  for (const record of records) {
+    if (String(record["Submission Type"] || "").trim() !== "Order Status") continue;
+    const qNo = (record["Quotation No"] || "").trim();
+    if (!qNo) continue;
+    // Records are newest-first; first match per quotation is the latest.
+    if (!latestByQuotation.has(qNo)) {
+      const caseStatus = (record["Case Status"] || "").trim();
+      const timestamp = (record.Timestamp || "").trim();
+      latestByQuotation.set(qNo, { caseStatus, timestamp });
+    }
+  }
+
+  return latestByQuotation;
 }
