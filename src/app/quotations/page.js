@@ -15,6 +15,7 @@ import QuotationFollowupModal from "@/components/quotations/QuotationFollowupMod
 import UpdateCaseStatusModal from "@/components/quotations/UpdateCaseStatusModal";
 import QuotationFilterBar from "@/components/quotations/QuotationFilterBar";
 import { DIVISIONS } from "@/constants/masterData";
+import { exportQuotationsExcel } from "@/lib/utils/generateQuotationExcel";
 
 const CLOSING_ORDER_STATUSES = new Set(["Won", "Loss", "Dead", "Partial"]);
 
@@ -63,6 +64,7 @@ export default function QuotationsPage() {
   const [viewQuotationNo, setViewQuotationNo] = useState(null);
   const [followUpQuotationNo, setFollowUpQuotationNo] = useState(null);
   const [caseStatusEdit, setCaseStatusEdit] = useState(null);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,6 +161,27 @@ export default function QuotationsPage() {
 
   const hasActiveFilters = Boolean(searchQuery.trim()) || activeFilterCount > 0;
 
+  const handleDownloadExcel = useCallback(async () => {
+    if (downloadingExcel || quotations.length === 0) return;
+    setDownloadingExcel(true);
+    try {
+      await exportQuotationsExcel({
+        quotations,
+        filters: {
+          orderStatus: orderStatusFilter.length > 0 ? orderStatusFilter.join(", ") : "All",
+          division: divisionFilter,
+          dateWise: dateWiseFilter,
+          fromDate,
+          toDate,
+        },
+      });
+    } catch (err) {
+      console.error("Excel export failed:", err);
+    } finally {
+      setDownloadingExcel(false);
+    }
+  }, [downloadingExcel, quotations, orderStatusFilter, divisionFilter, dateWiseFilter, fromDate, toDate]);
+
   // Pagination range calculation
   const getPaginationRange = () => {
     const { page, totalPages } = pagination;
@@ -248,6 +271,8 @@ export default function QuotationsPage() {
             onClearFilters={handleClearFilters}
             activeFilterCount={activeFilterCount}
             filteredCount={pagination.total}
+            onDownloadExcel={handleDownloadExcel}
+            downloading={downloadingExcel}
           />
         </div>
       )}
