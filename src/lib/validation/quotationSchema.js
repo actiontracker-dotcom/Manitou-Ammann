@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_UOM, DEFAULT_GST_RATE } from "@/lib/constants/quotationOptions";
+import { DEFAULT_UOM, DEFAULT_GST_RATE, UOM_OPTIONS } from "@/lib/constants/quotationOptions";
 
 // Split into sub-schemas so future modules (e.g. a standalone "Customer"
 // entity) can reuse pieces without duplicating rules.
@@ -108,7 +108,7 @@ export const itemRowSchema = z.object({
   priceWef: z.string().trim().optional().default(""),
   liveStock: z.string().trim().optional().default(""),
   hsnCode: z.string().trim().optional().default(""),
-  uom: z.string().trim().optional().default(DEFAULT_UOM),
+  uom: z.enum(UOM_OPTIONS.map((o) => o.value)).default(DEFAULT_UOM),
   gstRate: z.string().trim().optional().default(String(DEFAULT_GST_RATE)),
   group: z.string().trim().optional().default(""),
   subGroup: z.string().trim().optional().default(""),

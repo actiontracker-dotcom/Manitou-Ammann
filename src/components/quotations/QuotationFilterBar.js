@@ -2,6 +2,7 @@
 
 import { Filter, X, Download, Loader2 } from "lucide-react";
 import Select from "@/components/ui/Select";
+import MultiSelectDropdown from "@/components/ui/MultiSelectDropdown";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils/cn";
 
@@ -55,11 +56,11 @@ export default function QuotationFilterBar({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
-        <Select
+        <MultiSelectDropdown
           label="Order Status"
           options={orderStatusOptions}
-          value={filters.orderStatus}
-          onChange={(e) => onFilterChange({ orderStatus: e.target.value })}
+          selected={filters.orderStatus}
+          onChange={(next) => onFilterChange({ orderStatus: next })}
         />
         <Select
           label="Case Status"

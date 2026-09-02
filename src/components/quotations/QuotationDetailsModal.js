@@ -140,7 +140,7 @@ export default function QuotationDetailsModal({ quotationNo, onClose }) {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-ink-50 border-b border-ink-100">
-                        {["#", "Part Number", "Description", "Availability", "Qty", "Unit Price", "Other Rate", "Disc. %", "Line Total"].map((h) => (
+                        {["#", "Part Number", "Description", "UOM", "Availability", "Qty", "Unit Price", "Other Rate", "Disc. %", "Line Total"].map((h) => (
                           <th key={h} className="px-3 py-2.5 text-left font-semibold text-ink-600 whitespace-nowrap text-xs">
                             {h}
                           </th>
@@ -153,6 +153,7 @@ export default function QuotationDetailsModal({ quotationNo, onClose }) {
                           <td className="px-3 py-2.5 text-ink-400 font-mono text-xs">{i + 1}</td>
                           <td className="px-3 py-2.5 font-mono text-xs font-medium text-accent-600 whitespace-nowrap">{item.partNumber || "-"}</td>
                           <td className="px-3 py-2.5 text-ink-700 max-w-[200px] truncate" title={item.description}>{item.description || "-"}</td>
+                          <td className="px-3 py-2.5 text-ink-600">{item.uom || "-"}</td>
                           <td className="px-3 py-2.5 text-ink-600">{item.availability || "-"}</td>
                           <td className="px-3 py-2.5 text-ink-900 font-medium">{item.quantity}</td>
                           <td className="px-3 py-2.5 text-ink-600 font-mono text-xs">{formatCurrency(item.unitPrice)}</td>

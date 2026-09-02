@@ -65,7 +65,8 @@ export async function GET(request) {
 
     // Filter params
     const search = (searchParams.get("search") || "").trim().toLowerCase();
-    const orderStatus = searchParams.get("orderStatus") || "All";
+    const orderStatusParam = searchParams.get("orderStatus") || "";
+    const orderStatuses = orderStatusParam ? orderStatusParam.split(",") : [];
     const caseStatus = searchParams.get("caseStatus") || "All";
     const division = searchParams.get("division") || "All";
     const dateWise = searchParams.get("dateWise") || "All";
@@ -87,8 +88,8 @@ export async function GET(request) {
       );
     }
 
-    if (orderStatus !== "All") {
-      filtered = filtered.filter((q) => (q.orderStatus || "") === orderStatus);
+    if (orderStatuses.length > 0) {
+      filtered = filtered.filter((q) => orderStatuses.includes(q.orderStatus || ""));
     }
 
     if (caseStatus !== "All") {

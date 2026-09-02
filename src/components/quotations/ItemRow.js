@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import PartAutocomplete from "@/components/quotations/PartAutocomplete";
-import { AVAILABILITY_OPTIONS, DEFAULT_UOM, DEFAULT_GST_RATE } from "@/lib/constants/quotationOptions";
+import { AVAILABILITY_OPTIONS, UOM_OPTIONS, DEFAULT_UOM, DEFAULT_GST_RATE } from "@/lib/constants/quotationOptions";
 import { computeLineTotal, formatCurrency } from "@/lib/utils/formatters";
 
 function toDateStr(dateVal) {
@@ -31,7 +31,6 @@ function ItemRow({ index, row, errors, onChange, onRemove, canRemove }) {
     onChange(row.id, "unitPrice", part.standardRate != null ? String(part.standardRate) : "");
     onChange(row.id, "liveStock", part.totalQty != null ? String(part.totalQty) : "");
     onChange(row.id, "hsnCode", part.hsnCode || "");
-    onChange(row.id, "uom", DEFAULT_UOM);
     onChange(row.id, "gstRate", String(DEFAULT_GST_RATE));
     onChange(row.id, "group", part.group || "");
     onChange(row.id, "subGroup", part.subGroup || "");
@@ -104,7 +103,7 @@ function ItemRow({ index, row, errors, onChange, onRemove, canRemove }) {
           required
           type="number"
           min="0"
-          step="1"
+          step="0.01"
           placeholder="0"
           value={row.quantity}
           error={errors[`items.${index}.quantity`]}
@@ -142,12 +141,12 @@ function ItemRow({ index, row, errors, onChange, onRemove, canRemove }) {
           error={errors[`items.${index}.discount`]}
           onChange={(e) => onChange(row.id, "discount", e.target.value)}
         />
-        <Input
+        <Select
           label="UOM"
-          placeholder="Auto-filled as Nos"
+          options={UOM_OPTIONS}
           value={row.uom || DEFAULT_UOM}
           error={errors[`items.${index}.uom`]}
-          readOnly
+          onChange={(e) => onChange(row.id, "uom", e.target.value)}
         />
         <Input
           label="GST (%)"

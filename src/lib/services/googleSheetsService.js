@@ -1143,10 +1143,8 @@ export async function buildQuotationRows(quotation, { quotationId, createdAt }) 
       "Part Number": item.partNumber,
       "Part Descriptions": item.partDescription,
       "HSN Code": item.hsnCode || "",
-      // Business rule: UOM is always "Nos" and GST Rate is always 18%.
-      // These are forced constants (never taken from the parts master or
-      // user input) so every saved quotation row carries the same values.
-      UOM: DEFAULT_UOM,
+      // UOM is user-selected per item (Nos, MTS, LTR); fall back to default.
+      UOM: item.uom || DEFAULT_UOM,
       "GST Rate": String(DEFAULT_GST_RATE),
       Quantity: item.quantity,
       "Unit Price": item.unitPrice,

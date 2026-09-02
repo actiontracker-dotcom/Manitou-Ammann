@@ -14,6 +14,7 @@ import QuotationDetailsModal from "@/components/quotations/QuotationDetailsModal
 import QuotationFollowupModal from "@/components/quotations/QuotationFollowupModal";
 import UpdateCaseStatusModal from "@/components/quotations/UpdateCaseStatusModal";
 import QuotationFilterBar from "@/components/quotations/QuotationFilterBar";
+import { DIVISIONS } from "@/constants/masterData";
 
 const CLOSING_ORDER_STATUSES = new Set(["Won", "Loss", "Dead", "Partial"]);
 
@@ -44,9 +45,7 @@ const ORDER_STATUS_FILTER_OPTIONS = [
 
 const DIVISION_FILTER_OPTIONS = [
   { value: "All", label: "All" },
-  { value: "M-SPR", label: "M-SPR" },
-  { value: "PMT", label: "PMT" },
-  { value: "SPR", label: "SPR" },
+  ...DIVISIONS,
 ];
 
 export default function QuotationsPage() {
@@ -54,7 +53,7 @@ export default function QuotationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [orderStatusFilter, setOrderStatusFilter] = useState("All");
+  const [orderStatusFilter, setOrderStatusFilter] = useState([]);
   const [caseStatusFilter, setCaseStatusFilter] = useState("All");
   const [divisionFilter, setDivisionFilter] = useState("All");
   const [dateWiseFilter, setDateWiseFilter] = useState("All");
@@ -87,7 +86,7 @@ export default function QuotationsPage() {
       params.set("page", String(page));
       params.set("pageSize", String(PAGE_SIZE));
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
-      if (orderStatusFilter !== "All") params.set("orderStatus", orderStatusFilter);
+      if (orderStatusFilter.length > 0) params.set("orderStatus", orderStatusFilter.join(","));
       if (caseStatusFilter !== "All") params.set("caseStatus", caseStatusFilter);
       if (divisionFilter !== "All") params.set("division", divisionFilter);
       if (dateWiseFilter !== "All") params.set("dateWise", dateWiseFilter);
@@ -124,7 +123,7 @@ export default function QuotationsPage() {
   );
 
   const activeFilterCount = [
-    orderStatusFilter !== "All",
+    orderStatusFilter.length > 0,
     caseStatusFilter !== "All",
     divisionFilter !== "All",
     dateWiseFilter !== "All",
@@ -132,7 +131,7 @@ export default function QuotationsPage() {
   ].filter(Boolean).length;
 
   const handleClearFilters = useCallback(() => {
-    setOrderStatusFilter("All");
+    setOrderStatusFilter([]);
     setCaseStatusFilter("All");
     setDivisionFilter("All");
     setDateWiseFilter("All");
