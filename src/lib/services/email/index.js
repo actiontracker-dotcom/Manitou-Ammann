@@ -78,7 +78,7 @@ export async function sendDailyReportEmails(username) {
     try {
       await sendEmail({
         to: adminEmails.join(", "),
-        subject: "\uD83D\uDCCA Today Quotation Report",
+        subject: "\uD83D\uDCCA Today Quotation Report Manitou Ammann",
         html: adminHtml,
       });
       console.log("[Daily Email] Admin email sent to:", adminEmails.join(", "));
@@ -104,7 +104,7 @@ export async function sendDailyReportEmails(username) {
       try {
         await sendEmail({
           to: userEmail,
-          subject: "\uD83D\uDCCA Today Quotation Report",
+          subject: "\uD83D\uDCCA Today Quotation Report Manitou Ammann",
           html: fullUserHtml,
         });
         console.log("[Daily Email] User email sent to:", userEmail);
@@ -138,7 +138,7 @@ export async function sendDailyReportEmails(username) {
       try {
         await sendEmail({
           to: email,
-          subject: "\uD83D\uDCCA Today Quotation Report",
+          subject: "\uD83D\uDCCA Today Quotation Report Manitou Ammann",
           html: fullUserHtml,
         });
         console.log("[Daily Email] User email sent to:", email);
