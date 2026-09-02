@@ -1,5 +1,6 @@
 import { sendEmail } from "./transporter.js";
 import { getAdminEmails, getUserEmail, isTestMode } from "./recipients.js";
+import { getUsers } from "@/lib/services/usersService";
 import { buildDailyReport } from "./reportBuilder.js";
 import { getTestData } from "./testData.js";
 import { renderDailyReport } from "./templates/dailyReport.js";
@@ -38,6 +39,26 @@ function injectUserSection(html, userSectionHtml) {
   }
 
   return html;
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+async function getAllActiveNonAdminUsers() {
+  try {
+    var users = await getUsers();
+    return users.filter(function (u) {
+      if (!u.active) return false;
+      var role = String(u.role || "").trim().toLowerCase();
+      if (role === "admin") return false;
+      var email = String(u.email || "").trim();
+      return email && isValidEmail(email);
+    });
+  } catch (err) {
+    console.error("[Daily Email] Failed to fetch users:", err.message);
+    return [];
+  }
 }
 
 export async function sendDailyReportEmails(username) {
@@ -94,6 +115,38 @@ export async function sendDailyReportEmails(username) {
       }
     } else {
       console.log("[Daily Email] No valid email for user:", username, ". Skipping user email.");
+    }
+  } else {
+    var allUsers = await getAllActiveNonAdminUsers();
+    console.log("[Daily Email] Cron mode — found", allUsers.length, "active non-admin user(s).");
+    var adminEmailSet = new Set(adminEmails.map(function (e) { return e.toLowerCase(); }));
+
+    for (var i = 0; i < allUsers.length; i++) {
+      var u = allUsers[i];
+      var email = String(u.email || "").trim().toLowerCase();
+      if (adminEmailSet.has(email)) {
+        console.log("[Daily Email] Skipping", email, "(already received admin email).");
+        continue;
+      }
+      var userHtml = renderDailyReport(reportData, "Dear " + u.username + ",");
+      var userSection = renderUserFollowupsSection(
+        reportData.tomorrowPendingFollowups,
+        tomorrowDisplayFromDateKey(reportData.tomorrowKey)
+      );
+      var fullUserHtml = injectUserSection(userHtml, userSection);
+
+      try {
+        await sendEmail({
+          to: email,
+          subject: "\uD83D\uDCCA Today Quotation Report",
+          html: fullUserHtml,
+        });
+        console.log("[Daily Email] User email sent to:", email);
+        results.users.push({ success: true, recipients: [email] });
+      } catch (err) {
+        console.error("[Daily Email] User email failed for", email, ":", err.message);
+        results.users.push({ success: false, error: err.message, recipients: [email] });
+      }
     }
   }
 
