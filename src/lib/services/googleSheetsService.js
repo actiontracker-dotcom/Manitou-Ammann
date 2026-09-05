@@ -1396,6 +1396,10 @@ export async function loadQuotations() {
       partNumber: item.partNumber,
       description: item.description,
       quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      otherRate: item.otherRate,
+      discount: item.discount,
+      total: item.total,
     }));
   }
 

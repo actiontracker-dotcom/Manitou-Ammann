@@ -14,7 +14,7 @@ const REPORT_HEADERS = [
   "NOF",
   "ORDER STATUS",
   "QUOTATION DATE",
-  "TOTAL AMOUNT",
+  "LINE TOTAL",
   "PART NUMBER",
   "DESCRIPTION",
   "QUANTITY",
@@ -166,7 +166,12 @@ export async function exportQuotationsExcel({ quotations, filters }) {
   borderBox(ws, 3, 1, 5, 2, THIN_LIGHT);
 
   // ── KPI cards ────────────────────────────────────────────────
-  const totalAmount = quotations.reduce((sum, q) => sum + (Number(q.totalAmount) || 0), 0);
+  const totalAmount = quotations.reduce((sum, q) => {
+    const itemTotal = (q.items || []).reduce((itemSum, item) => {
+      return itemSum + (Number(item.total) || 0);
+    }, 0);
+    return sum + itemTotal;
+  }, 0);
 
   ws.mergeCells("A7:B7");
   const kpi1Label = ws.getCell("A7");
@@ -184,7 +189,7 @@ export async function exportQuotationsExcel({ quotations, filters }) {
 
   ws.mergeCells("D7:E7");
   const kpi2Label = ws.getCell("D7");
-  kpi2Label.value = "TOTAL AMOUNT";
+  kpi2Label.value = "LINE TOTAL";
   kpi2Label.font = { bold: true, size: 10, color: { argb: "FF2843AD" } };
   kpi2Label.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF1FD" } };
   kpi2Label.alignment = { horizontal: "center", vertical: "middle" };
@@ -254,7 +259,7 @@ export async function exportQuotationsExcel({ quotations, filters }) {
         Number.isFinite(Number(q.numberOfFollowup)) ? Number(q.numberOfFollowup) : (q.numberOfFollowup || ""),
         q.orderStatus,
         formatDate(q.quotationDate),
-        Number(q.totalAmount) || 0,
+        Number(item.total) || 0,
         cleanTextValue(item.partNumber),
         cleanTextValue(item.description),
         quantityCellValue(item.quantity),

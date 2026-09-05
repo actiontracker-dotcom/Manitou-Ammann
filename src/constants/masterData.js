@@ -23,7 +23,7 @@ export const ENQUIRY_SOURCES = [
 
 export const ENQUIRY_GENERATED_BY = [
   { value: "Sumeet Yadav", label: "Sumeet Yadav" },
-  { value: "Gopal Dewkar", label: "Gopal Dewkar" },
+  { value: "Gopal Deulkar", label: "Gopal Deulkar" },
   { value: "Pawan Sinha", label: "Pawan Sinha" },
 ];
 
