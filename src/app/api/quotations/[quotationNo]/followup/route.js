@@ -5,6 +5,7 @@ import {
   updateQuotationOrderStatus,
   updateQuotationCaseStatus,
 } from "@/lib/services/googleSheetsService";
+import { syncQuotationToOtd } from "@/lib/services/otdSync";
 import { getSessionUser, unauthorizedResponse } from "@/lib/auth/session";
 import { normalizeToCanonicalDate } from "@/lib/utils/dateUtils";
 
@@ -221,6 +222,12 @@ export async function POST(request, { params }) {
           },
           { status }
         );
+      }
+
+      if (stringValue(body.orderStatus) === "Won") {
+        syncQuotationToOtd(normalizedQuotationNo).catch((error) => {
+          console.error("[OTD Sync] Failed:", normalizedQuotationNo, error.message);
+        });
       }
 
       return NextResponse.json(
